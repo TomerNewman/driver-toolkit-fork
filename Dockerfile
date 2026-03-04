@@ -4,7 +4,7 @@ ARG RT_KERNEL_VERSION=''
 ARG RHEL_VERSION=''
 # If RHEL_VERSION is empty, we infer it from the /etc/os-release file. This is used by OKD as we always want the latest one. 
 RUN [ "${RHEL_VERSION}" == "" ] && source /etc/os-release && RHEL_VERSION=${VERSION_ID}; echo ${RHEL_VERSION} > /etc/dnf/vars/releasever \
-    && dnf config-manager --best --setopt=install_weak_deps=False --save
+    && echo -e "best=True\ninstall_weak_deps=False" >> /etc/dnf/dnf.conf
 
 # kernel packages needed to build drivers / kmods 
 RUN dnf -y install \
@@ -37,8 +37,8 @@ RUN if [ $(arch) = aarch64 ]; then \
 RUN dnf -y install kernel-rpm-macros
 
 # Additional packages that are mandatory for driver-containers
-RUN dnf -y install elfutils-libelf-devel kmod binutils kabi-dw glibc
-    
+RUN dnf -y install autoconf automake binutils elfutils-libelf-devel glibc kabi-dw kmod libtool
+
 # Find and install the GCC version used to compile the kernel
 # If it cannot be found (fails on some architectures), install the default gcc
 RUN export INSTALLED_KERNEL=$(rpm -q --qf "%{VERSION}-%{RELEASE}.%{ARCH}"  kernel-devel) && \
